@@ -1,4 +1,4 @@
-package fr.umlv.matou.client;
+package fr.umlv.matou;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
