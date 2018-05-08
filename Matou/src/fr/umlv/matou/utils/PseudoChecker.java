@@ -1,7 +1,7 @@
-package fr.umlv.matou;
+package fr.umlv.matou.utils;
 
-public class PseudoChecker {
-	private final static int MAX_PSEUDO_SIZE = 20;
+public interface PseudoChecker {
+	final static int MAX_PSEUDO_SIZE = 20;
 	
 	/**
 	 * Check if the string in parameter is a valid pseudo. 
@@ -9,7 +9,7 @@ public class PseudoChecker {
 	 * @return true if string is a pseudo. Else, return false.
 	 */
 	public static boolean isConformed(String pseudo) {
-		return isShort(pseudo) & isAlphaNum(pseudo);
+		return isWellSized(pseudo) & isAlphaNum(pseudo);
 	}
 	
 	private static boolean isAlphaNum(String pseudo) {
@@ -21,7 +21,7 @@ public class PseudoChecker {
 		return true;
 	}
 	
-	private static boolean isShort(String pseudo) {
-		return pseudo.length() < MAX_PSEUDO_SIZE;
+	private static boolean isWellSized(String pseudo) {
+		return pseudo.length() > 2 && pseudo.length() < MAX_PSEUDO_SIZE;
 	}
 }

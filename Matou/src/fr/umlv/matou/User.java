@@ -1,6 +1,7 @@
 package fr.umlv.matou;
 
 import fr.umlv.matou.exceptions.MalformedPseudoException;
+import fr.umlv.matou.utils.PseudoChecker;
 
 public class User {
 	private final String pseudo;
