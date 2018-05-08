@@ -9,16 +9,12 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 import fr.umlv.matou.User;
-import fr.umlv.matou.client.ClientPacketReader;
-import fr.umlv.matou.client.ClientPacketSender;
 import fr.umlv.matou.exceptions.MalformedPseudoException;
 import fr.umlv.matou.packet.transceiver.PacketTransceiver;
 import fr.umlv.matou.packets.ConReqClientPacket;
 import fr.umlv.matou.packets.ConRespServerPacket;
 import fr.umlv.matou.packets.Packet;
 import fr.umlv.matou.packets.PacketType;
-import fr.umlv.matou.transceiver.ConRespServerReader;
-import fr.umlv.matou.transceiver.PacketReader;
 import fr.umlv.matou.utils.MatouScanner;
 
 public class MatouClient {
@@ -28,7 +24,7 @@ public class MatouClient {
 	private final InetSocketAddress server;
 	private final ByteBuffer rBuff = ByteBuffer.allocateDirect(4096);
 	private boolean connected;
-	private HashMap<Integer, PacketReader> readers;
+	private HashMap<Integer, PacketTransceiver<? extends Packet>> readers;
 	private SocketChannel sc;
 	private User user;
 
@@ -146,7 +142,7 @@ public class MatouClient {
 	}
 
 	private HashMap<Integer, PacketTransceiver<? extends Packet>> initReaders() throws IOException {
-		HashMap<Integer, PacketReader<? extends Packet>> hm = new HashMap<>();
+		HashMap<Integer, PacketTransceiver<? extends Packet>> hm = new HashMap<>();
 		hm.put(PacketType.CON_REQ_CLIENT.opCode(), new ConReqClientReader());
 		hm.put(PacketType.DATA_FILE_CLIENT.opCode(), new DataFileCLientReader());
 		hm.put(PacketType.DATA_MSG_CLIENT.opCode(), new DataMsgClientReader());
