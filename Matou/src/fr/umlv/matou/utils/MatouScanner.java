@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.Scanner;
 
-public class MyScanner {
+public class MatouScanner {
 	
 	/**
 	 * Scan one line on the system input.

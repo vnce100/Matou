@@ -1,4 +1,4 @@
-package fr.umlv.matou.utils;
+package fr.umlv.matou.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -20,7 +20,7 @@ import fr.umlv.matou.packets.LinkRespClientPacket;
  * @author v.vivier
  *
  */
-public interface PacketSenderClient {
+public interface ClientPacketSender {
 	final static Charset UTF8 = Charset.forName("utf-8");
 	
 	/**

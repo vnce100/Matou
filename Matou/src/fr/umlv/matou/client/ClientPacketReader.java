@@ -1,4 +1,4 @@
-package fr.umlv.matou.utils;
+package fr.umlv.matou.client;
 
 import static fr.umlv.matou.packets.PacketType.*;
 
@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 
 import fr.umlv.matou.exceptions.MalformedPacketException;
 import fr.umlv.matou.packets.ConRespServerPacket;
+import fr.umlv.matou.packets.LinkRespClientPacket;
 
 /**
  * TO FINISH
@@ -18,9 +19,11 @@ import fr.umlv.matou.packets.ConRespServerPacket;
  * Methods may block if there is no timeout when read on sockets.
  * @author v.vivier
  */
-public interface PacketReaderClient {
+public interface ClientPacketReader {
 	final static Charset UTF8 = Charset.forName("utf-8");
 
+	
+	
 	/**
 	 * 
 	 * @param sc
@@ -32,12 +35,6 @@ public interface PacketReaderClient {
 		rBuff.clear();
 		readInt(sc, rBuff);
 		rBuff.flip();
-		if(rBuff.getInt() != CON_RESP_SERVER.opCode()) throw new MalformedPacketException();
-		if(rBuff.remaining() < Integer.BYTES) {
-			rBuff.compact();
-			readInt(sc, rBuff);
-			rBuff.flip();
-		}
 		int pseudoSize;
 		if((pseudoSize = rBuff.getInt()) < 0) throw new MalformedPacketException();
 		if(rBuff.remaining() < pseudoSize) {
@@ -55,31 +52,16 @@ public interface PacketReaderClient {
 	}
 	
 	/**
-	 * Ensure buffer contain at least the size of an int or try to read it.
+	 * 
 	 * @param sc
-	 * @param bb
+	 * @param rBuff
+	 * @return
 	 * @throws IOException
 	 */
-	private static void readInt(SocketChannel sc, ByteBuffer bb) throws IOException {
-		while(bb.capacity() - bb.remaining() < Integer.BYTES) {
-			if(sc.read(bb) == 1) {
-				throw new IllegalStateException("readInt(): Unexpected closed channel");
-			}
-		}
-	}
-	
-	/**
-	 * Ensure buffer contain at least n bytes or try to read it.
-	 * @param sc
-	 * @param bb
-	 * @param n
-	 * @throws IOException
-	 */
-	private static void readAll(SocketChannel sc, ByteBuffer bb, int n) throws IOException {
-		while(bb.capacity() - bb.remaining() < n) {
-			if(sc.read(bb) == 1) {
-				throw new IllegalStateException("readInt(): Unexpected closed channel");
-			}
-		}
+	public static LinkRespClientPacket readLinkRespClient(SocketChannel sc, ByteBuffer rBuff) throws IOException {
+		rBuff.clear();
+		readLong(sc, rBuff);
+		rBuff.flip();
+		return new LinkRespClientPacket(rBuff.getLong());
 	}
 }

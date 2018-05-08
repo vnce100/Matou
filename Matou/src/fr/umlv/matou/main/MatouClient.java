@@ -1,8 +1,6 @@
-package fr.umlv.matou.client;
+package fr.umlv.matou.main;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -11,12 +9,16 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 import fr.umlv.matou.User;
+import fr.umlv.matou.client.ClientPacketReader;
+import fr.umlv.matou.client.ClientPacketSender;
 import fr.umlv.matou.exceptions.MalformedPseudoException;
 import fr.umlv.matou.packets.ConReqClientPacket;
 import fr.umlv.matou.packets.ConRespServerPacket;
-import fr.umlv.matou.utils.MyScanner;
-import fr.umlv.matou.utils.PacketReaderClient;
-import fr.umlv.matou.utils.PacketSenderClient;
+import fr.umlv.matou.packets.Packet;
+import fr.umlv.matou.packets.PacketType;
+import fr.umlv.matou.transceiver.ConRespServerReader;
+import fr.umlv.matou.transceiver.PacketReader;
+import fr.umlv.matou.utils.MatouScanner;
 
 public class MatouClient {
 	private final static Logger logger = Logger.getLogger(MatouClient.class.getName());
@@ -25,6 +27,7 @@ public class MatouClient {
 	private final InetSocketAddress server; 
 	private final ByteBuffer rBuff = ByteBuffer.allocateDirect(4096);
 	private boolean connected;
+	private HashMap<Integer, PacketReader> readers;
 	private SocketChannel sc;
 	private User user;
 	
@@ -64,13 +67,14 @@ public class MatouClient {
 			logger.info("launch(): Server reached");
 			this.sc = sc;
 			sc.socket().setSoTimeout(TIMEOUT);
+			readers = initReaders();
 			/* ########### MAIN LOOP ########### */
 			while(true) {
 				while(user == null) getUser();
 				connect();
 				if(connected == false) break;
 				while(connected) {
-					String commandLine = MyScanner.scanLine(System.in);
+					String commandLine = MatouScanner.scanLine(System.in);
 					String[] tokens = commandLine.trim().split(" ", 2);
 					switch(tokens[0]) {
 					case "/l":
@@ -93,7 +97,7 @@ public class MatouClient {
 	 */
 	private void getUser() {
 		System.out.print("Pseudo: ");
-		String pseudo = MyScanner.scanLine(System.in);
+		String pseudo = MatouScanner.scanLine(System.in);
 		try {
 			this.user = new User(pseudo);
 		} catch (MalformedPseudoException e) {
@@ -107,8 +111,8 @@ public class MatouClient {
 	 */
 	private void connect() throws IOException {
 		logger.info("Trying to connect as " + user.getPseudo());
-		PacketSenderClient.sendConReqClient(sc, new ConReqClientPacket(user.getPseudo()));
-		ConRespServerPacket response = PacketReaderClient.readConRespServer(sc, rBuff);
+		ClientPacketSender.sendConReqClient(sc, new ConReqClientPacket(user.getPseudo()));
+		ConRespServerPacket response = ClientPacketReader.readConRespServer(sc, rBuff);
 		if(response.getFlag() != 0 || !response.getPseudo().equals(user.getPseudo())) {
 			logger.info("Connection refused");
 			return;
@@ -135,5 +139,12 @@ public class MatouClient {
 	 */
 	private static String[] parseArgs(String args) {
 		return args.trim().split(" ");
+	}
+	
+	private HashMap<Integer, PacketReader<? extends Packet>> initReaders() throws IOException {
+		HashMap<Integer, PacketReader<? extends Packet>> hm = new HashMap<>();
+		hm.put(PacketType.CON_RESP_SERVER.opCode(), new ConRespServerReader());
+		hm.get(PacketType.CON_RESP_SERVER.opCode()).read(sc, rBuff);
+		return hm;
 	}
 }
